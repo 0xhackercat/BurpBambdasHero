@@ -1,0 +1,61 @@
+// 台灣格式敏感資料洩露檢測器
+// 檢查是否有回應
+if (!requestResponse.hasResponse()) {
+    return false;
+}
+
+// 獲取URL
+String url = requestResponse.request().url();
+
+// 排除靜態資源
+if (url.contains(".js") || url.contains(".css") || url.contains(".png") || 
+    url.contains(".jpg") || url.contains(".gif") || url.contains(".ico")) {
+    return false;
+}
+
+// 獲取回應內容
+String responseBody = requestResponse.response().bodyToString();
+
+// 如果回應為空，跳過
+if (responseBody == null || responseBody.length() == 0) {
+    return false;
+}
+
+// 檢測台灣身分證字號格式 (例: A123456789)
+if (responseBody.matches(".*\\b[A-Z][0-9]{9}\\b.*")) {
+    return true;
+}
+
+// 檢測信用卡號格式 (16位數字，可能有分隔符)
+if (responseBody.matches(".*\\b[0-9]{4}[\\s\\-]?[0-9]{4}[\\s\\-]?[0-9]{4}[\\s\\-]?[0-9]{4}\\b.*")) {
+    return true;
+}
+
+// 檢測Email地址
+if (responseBody.matches(".*\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}\\b.*")) {
+    return true;
+}
+
+// 檢測台灣手機號碼格式 (09xxxxxxxx)
+if (responseBody.matches(".*\\b09[0-9]{8}\\b.*")) {
+    return true;
+}
+
+// 檢測密碼相關欄位
+String lowerResponse = responseBody.toLowerCase();
+if (lowerResponse.contains("\"password\"") || 
+    lowerResponse.contains("\"passwd\"") || 
+    lowerResponse.contains("\"pwd\"") ||
+    lowerResponse.contains("\"secret\"") ||
+    lowerResponse.contains("\"token\"")) {
+    return true;
+}
+
+// 檢測可能的API密鑰格式
+if (responseBody.matches(".*\\b[A-Za-z0-9]{32,}\\b.*") && 
+    (lowerResponse.contains("key") || lowerResponse.contains("token") || lowerResponse.contains("secret"))) {
+    return true;
+}
+
+// 如果沒有檢測到敏感資料，返回false
+return false;

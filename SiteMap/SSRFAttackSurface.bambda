@@ -1,0 +1,57 @@
+var rr = node.requestResponse();
+if (rr == null) {
+    return false;
+}
+
+var request = rr.request();
+
+if (!request.hasParameters()) {
+    return false;
+}
+
+// 可疑 SSRF 參數名稱
+String[] suspiciousParamNames = {
+    "url", "uri", "link", "callback",
+    "redirect", "return", "next",
+    "target", "endpoint", "dest",
+    "webhook"
+};
+
+// 可疑 SSRF 參數值特徵
+String[] suspiciousValuePatterns = {
+    "http://", "https://",
+    "ftp://", "file://", "gopher://", "dict://", "ldap://",
+    "127.0.0.1", "localhost",
+    "169.254.169.254",
+    "::1"
+};
+
+for (ParsedHttpParameter parameter : request.parameters()) {
+
+    String name = parameter.name().toLowerCase();
+    String value = parameter.value().toLowerCase();
+
+    boolean nameSuspicious = false;
+    boolean valueSuspicious = false;
+
+    for (String keyword : suspiciousParamNames) {
+        if (name.equals(keyword) || name.contains(keyword)) {
+            nameSuspicious = true;
+            break;
+        }
+    }
+
+    for (String pattern : suspiciousValuePatterns) {
+        if (value.contains(pattern)) {
+            valueSuspicious = true;
+            break;
+        }
+    }
+
+    // Target 版：偏 attack surface → 任一命中即可
+    if (nameSuspicious || valueSuspicious) {
+        return true;
+    }
+}
+
+return false;

@@ -1,0 +1,26 @@
+var body = requestResponse.request().bodyToString().toLowerCase();
+if (body.isEmpty()) return false;
+
+int hit = 0;
+
+if (body.contains("price")) hit++;
+if (body.contains("amount")) hit++;
+if (body.contains("total")) hit++;
+if (body.contains("discount")) hit++;
+if (body.contains("quantity")) hit++;
+
+if (hit < 2) return false;
+
+for (var h : requestResponse.request().headers()) {
+    var header = h.name().toLowerCase();
+    if (
+        header.contains("signature")
+        || header.contains("hash")
+        || header.contains("hmac")
+        || header.contains("mac")
+    ) {
+        return false;
+    }
+}
+
+return true;

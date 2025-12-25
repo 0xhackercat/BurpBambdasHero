@@ -1,0 +1,53 @@
+HttpRequest request = requestResponse.request();
+
+// 可疑的 SSRF 參數名稱關鍵字
+String[] suspiciousParamNames = {
+    "url", "uri", "link", "callback", "redirect", "return", "next",
+    "dest", "destination", "target", "endpoint", "webhook",
+    "image", "avatar", "file", "path", "resource"
+};
+
+// 可疑的 SSRF 參數值特徵
+String[] suspiciousValuePatterns = {
+    "http://", "https://",
+    "ftp://", "file://", "gopher://", "dict://", "ldap://",
+    "127.0.0.1", "localhost", "0.0.0.0",
+    "169.254.169.254", "::1",
+    "../", "..\\", "/"
+};
+
+if (!request.hasParameters()) {
+    return false;
+}
+
+for (ParsedHttpParameter parameter : request.parameters()) {
+
+    String name = parameter.name().toLowerCase();
+    String value = parameter.value().toLowerCase();
+
+    boolean nameSuspicious = false;
+    boolean valueSuspicious = false;
+
+    // 檢查參數名稱
+    for (String keyword : suspiciousParamNames) {
+        if (name.contains(keyword)) {
+            nameSuspicious = true;
+            break;
+        }
+    }
+
+    // 檢查參數值
+    for (String pattern : suspiciousValuePatterns) {
+        if (value.contains(pattern)) {
+            valueSuspicious = true;
+            break;
+        }
+    }
+
+    // 任一成立就值得測
+    if (nameSuspicious || valueSuspicious) {
+        return true;
+    }
+}
+
+return false;

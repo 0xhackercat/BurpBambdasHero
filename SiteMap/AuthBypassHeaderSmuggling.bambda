@@ -1,0 +1,17 @@
+var rr = node.requestResponse();
+if (!rr.hasResponse()) return false;
+
+for (var h : rr.request().headers()) {
+    var name = h.name().toLowerCase();
+
+    if (
+        name.equals("x-user")
+        || name.equals("x-role")
+        || name.equals("x-forwarded-user")
+        || name.equals("x-auth")
+    ) {
+        return true;
+    }
+}
+
+return false;

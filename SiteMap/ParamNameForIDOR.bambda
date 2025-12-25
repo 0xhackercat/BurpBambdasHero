@@ -1,0 +1,28 @@
+var rr = node.requestResponse();
+if (!rr.hasResponse()) return false;
+
+var params = rr.request().parameters();
+
+for (var p : params) {
+    var name = p.name().toLowerCase();
+    var value = p.value();
+
+    if (
+        (name.equals("id")
+        || name.equals("uid")
+        || name.contains("user_id")
+        || name.contains("account")
+        || name.contains("order")
+        || name.contains("invoice")
+        || name.contains("profile"))
+        &&
+        (
+            value.matches("^\\d+$")
+            || value.matches("^[0-9a-fA-F\\-]{36}$")
+        )
+    ) {
+        return true;
+    }
+}
+
+return false;

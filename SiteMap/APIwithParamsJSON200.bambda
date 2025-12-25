@@ -1,0 +1,22 @@
+var rr = node.requestResponse();
+if (!rr.hasResponse()) return false;
+
+var req = rr.request();
+var res = rr.response();
+
+if (
+    !req.hasParameters(HttpParameterType.URL)
+    && !req.hasParameters(HttpParameterType.BODY)
+) {
+    return false;
+}
+
+if (!req.pathWithoutQuery().toLowerCase().contains("api")) {
+    return false;
+}
+
+if (res.statusCode() != 200) {
+    return false;
+}
+
+return res.mimeType() == MimeType.JSON;

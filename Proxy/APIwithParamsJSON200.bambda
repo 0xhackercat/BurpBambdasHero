@@ -1,0 +1,20 @@
+var req = requestResponse.request();
+var res = requestResponse.response();
+if (res == null) return false;
+
+if (
+    !req.hasParameters(HttpParameterType.URL)
+    && !req.hasParameters(HttpParameterType.BODY)
+) {
+    return false;
+}
+
+if (!req.pathWithoutQuery().toLowerCase().contains("api")) {
+    return false;
+}
+
+if (res.statusCode() != 200) {
+    return false;
+}
+
+return requestResponse.mimeType() == MimeType.JSON;
